@@ -34,5 +34,6 @@ int main(int argc, const char *argv[]) {
   __builtin_riscv_smx_end();
 
   printf("%d\n", sum);
+  fclose(input);
   return 0;
 }
