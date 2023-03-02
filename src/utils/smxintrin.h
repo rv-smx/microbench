@@ -26,8 +26,15 @@ enum {
 /// Some magics.
 #define __SMX_HELPER_CONCAT0(x, y) x##y
 #define __SMX_HELPER_CONCAT(x, y) __SMX_HELPER_CONCAT0(x, y)
-#define __SMX_HELPER_LOOP_LABEL __SMX_HELPER_CONCAT(__smx_loop_, __LINE__)
-#define __SMX_HELPER_IV_VAR_NAME __SMX_HELPER_CONCAT(__smx_iv_var_, __LINE__)
+#define __SMX_HELPER_LOOP_LABEL __SMX_HELPER_CONCAT(__smx_loop_, __COUNTER__)
+#define __SMX_HELPER_IV_VAR_NAME __SMX_HELPER_CONCAT(__smx_iv_var_, __COUNTER__)
+#define __SMX_HELPER_DO_WHILE(iv, body, label)         \
+  do {                                                 \
+  label:                                               \
+    (void)0;                                           \
+    body if (__builtin_riscv_smx_step_bl(iv) ==        \
+             __builtin_riscv_smx_b_cond()) goto label; \
+  } while (0)
 #define __SMX_HELPER_DO_WHILE_VAR(iv, var, init, body, label, iv_var) \
   do {                                                                \
   label:                                                              \
@@ -39,24 +46,12 @@ enum {
   } while (0)
 
 /// Creates a SMX-style do-while loop.
-#define SMX_DO_WHILE(iv, body)                                           \
-  do {                                                                   \
-  __SMX_HELPER_LOOP_LABEL:                                               \
-    (void)0;                                                             \
-    body if (__builtin_riscv_smx_step_bl(iv) ==                          \
-             __builtin_riscv_smx_b_cond()) goto __SMX_HELPER_LOOP_LABEL; \
-  } while (0)
+#define SMX_DO_WHILE(iv, body) \
+  __SMX_HELPER_DO_WHILE(iv, body, __SMX_HELPER_LOOP_LABEL)
 
 /// Creates a SMX-style do-while loop with induction variable.
-#define SMX_DO_WHILE_VAR(iv, var, init, body)                               \
-  do {                                                                      \
-  __SMX_HELPER_LOOP_LABEL:                                                  \
-    (void)0;                                                                \
-    size_t var = (init);                                                    \
-    body size_t __SMX_HELPER_IV_VAR_NAME = __builtin_riscv_smx_step_bl(iv); \
-    var = __SMX_HELPER_IV_VAR_NAME;                                         \
-    if (__SMX_HELPER_IV_VAR_NAME == __builtin_riscv_smx_b_cond())           \
-      goto __SMX_HELPER_LOOP_LABEL;                                         \
-  } while (0)
+#define SMX_DO_WHILE_VAR(iv, var, init, body)                             \
+  __SMX_HELPER_DO_WHILE_VAR(iv, var, init, body, __SMX_HELPER_LOOP_LABEL, \
+                            __SMX_HELPER_IV_VAR_NAME)
 
 #endif  // SMX_SMXINTRIN_H_
