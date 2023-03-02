@@ -17,13 +17,14 @@ int main(int argc, const char *argv[]) {
 
   unsigned len;
   fscanf(input, "%u", &len);
+  __builtin_riscv_smx_cfg_iv(0, 1, len, SMX_STOP_COND_GEU);
+
   int *arr = malloc(sizeof(int) * len);
+  __builtin_riscv_smx_cfg_ms(arr, 4, 0, SMX_STREAM_KIND_IV, 1, 4);
+
   for (size_t i = 0; i < len; ++i) {
     fscanf(input, "%d", &arr[i]);
   }
-
-  __builtin_riscv_smx_cfg_iv(0, 1, len, SMX_STOP_COND_GEU);
-  __builtin_riscv_smx_cfg_ms(arr, 4, 0, SMX_STREAM_KIND_IV, 1, 4);
   __builtin_riscv_smx_ready();
 
   int sum = 0;
