@@ -28,8 +28,10 @@ int main(int argc, const char *argv[]) {
   __builtin_riscv_smx_ready();
 
   int sum = 0;
-  if (len) {
-    SMX_DO_WHILE(0, { sum += __builtin_riscv_smx_load_i32(0, 0); });
+  if (__builtin_riscv_smx_read(0) != __builtin_riscv_smx_stop_val(0)) {
+    do {
+      sum += __builtin_riscv_smx_load_i32(0, 0);
+    } while (__builtin_riscv_smx_step(0) != __builtin_riscv_smx_stop_val(0));
   }
 
   __builtin_riscv_smx_end();

@@ -25,16 +25,16 @@ static int *mat_mul(int *a, int *b, unsigned l, unsigned m, unsigned n) {
   __builtin_riscv_smx_cfg_ms(c, 4 * n, 0, SMX_STREAM_KIND_IV, 1, 4);
   __builtin_riscv_smx_cfg_addr(4, 1, SMX_STREAM_KIND_IV, 0, 0, 0);
   __builtin_riscv_smx_ready();
-  SMX_DO_WHILE(0, {
-    SMX_DO_WHILE(1, {
+  do {
+    do {
       int sum = 0;
-      SMX_DO_WHILE(2, {
+      do {
         sum += __builtin_riscv_smx_load_i32(0, 0) *
                __builtin_riscv_smx_load_i32(1, 0);
-      });
+      } while (__builtin_riscv_smx_step(2) != __builtin_riscv_smx_stop_val(2));
       __builtin_riscv_smx_store_i32(2, 0, sum);
-    });
-  });
+    } while (__builtin_riscv_smx_step(1) != __builtin_riscv_smx_stop_val(1));
+  } while (__builtin_riscv_smx_step(0) != __builtin_riscv_smx_stop_val(0));
   __builtin_riscv_smx_end();
   return c;
 }
