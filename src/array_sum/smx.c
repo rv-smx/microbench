@@ -21,7 +21,8 @@ int main(int argc, const char *argv[]) {
   }
 
   int sum = 0;
-  for (unsigned i = 0; i < len; ++i) {
+#pragma clang loop smx_streamize(enable)
+  for (size_t i = 0; i < len; ++i) {
     sum += arr[i];
   }
 

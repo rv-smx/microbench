@@ -3,47 +3,38 @@
 
 static FILE *f;
 
-static int *access_mat(int *mat, unsigned ncol, unsigned i, unsigned j) {
+static int *access_mat(int *mat, size_t ncol, size_t i, size_t j) {
   return &mat[i * ncol + j];
 }
 
-static int *read_mat(unsigned nrow, unsigned ncol) {
+static int *read_mat(size_t nrow, size_t ncol) {
   int *mat = malloc(sizeof(int) * nrow * ncol);
   if (!mat) abort();
-  for (unsigned i = 0; i < nrow; ++i) {
-    for (unsigned j = 0; j < ncol; ++j) {
+  for (size_t i = 0; i < nrow; ++i) {
+    for (size_t j = 0; j < ncol; ++j) {
       fscanf(f, "%d", access_mat(mat, ncol, i, j));
     }
   }
   return mat;
 }
 
-static int *mat_mul(int *a, int *b, unsigned l, unsigned m, unsigned n) {
+static int *mat_mul(int *a, int *b, size_t l, size_t m, size_t n) {
   int *c = malloc(sizeof(int) * l * n);
-  unsigned i = 0;
-#pragma nounroll
-  do {
-    unsigned j = 0;
-#pragma nounroll
-    do {
+  for (size_t i = 0; i < l; ++i) {
+    for (size_t j = 0; j < n; ++j) {
       int sum = 0;
-      unsigned k = 0;
-#pragma nounroll
-      do {
+      for (size_t k = 0; k < m; ++k) {
         sum += *access_mat(a, m, i, k) * *access_mat(b, n, k, j);
-        ++k;
-      } while (k < m);
+      }
       *access_mat(c, n, i, j) = sum;
-      ++j;
-    } while (j < n);
-    ++i;
-  } while (i < l);
+    }
+  }
   return c;
 }
 
-static void print_mat(int *mat, unsigned nrow, unsigned ncol) {
-  for (unsigned i = 0; i < nrow; ++i) {
-    for (unsigned j = 0; j < ncol; ++j) {
+static void print_mat(int *mat, size_t nrow, size_t ncol) {
+  for (size_t i = 0; i < nrow; ++i) {
+    for (size_t j = 0; j < ncol; ++j) {
       printf("%d ", *access_mat(mat, ncol, i, j));
     }
     printf("\n");
@@ -64,7 +55,6 @@ int main(int argc, const char *argv[]) {
 
   unsigned l, m, n;
   fscanf(f, "%u%u%u", &l, &m, &n);
-  if (!l || !m || !n) exit(0);
 
   int *a = read_mat(l, m);
   int *b = read_mat(m, n);
