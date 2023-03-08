@@ -58,8 +58,9 @@ LDFLAGS := $(CFLAGS) -fuse-ld=lld -static
 # Benchmarks
 # ==================================================
 
-BENCH := $(shell find $(SRC_DIR) -name '*.c')
-BENCH_EXE := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%, $(BENCH))
+BENCH := $(shell find $(SRC_DIR) -mindepth 1 -maxdepth 1 -type d)
+BENCH_EXE := $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%.base, $(BENCH))
+BENCH_EXE += $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%.smx, $(BENCH))
 
 .PHONY: clean
 
@@ -72,15 +73,16 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o
 	mkdir -p $(dir $@)
 	$(CROSS_CLANG) $(LDFLAGS) $< -o $@
 
-$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.streamized.ll
+$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.ll
 	mkdir -p $(dir $@)
 	$(CROSS_LLC) $(LLCFLAGS) $< -o $@
 
-.PRECIOUS: $(BUILD_DIR)/%.streamized.ll
-$(BUILD_DIR)/%.streamized.ll: $(BUILD_DIR)/%.ll
+.PRECIOUS: $(BUILD_DIR)/%.smx.ll
+$(BUILD_DIR)/%.smx.ll: $(BUILD_DIR)/%.base.ll
 	mkdir -p $(dir $@)
 	$(CROSS_OPT) $(OPTFLAGS) $< -o $@
 
-$(BUILD_DIR)/%.ll: $(SRC_DIR)/%.c
+.PRECIOUS: $(BUILD_DIR)/%.base.ll
+$(BUILD_DIR)/%.base.ll: $(SRC_DIR)/%/main.c
 	mkdir -p $(dir $@)
 	$(CROSS_CLANG) $(CFLAGS) -S -emit-llvm $< -o $@
