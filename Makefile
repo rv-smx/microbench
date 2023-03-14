@@ -61,6 +61,7 @@ LDFLAGS := $(CFLAGS) -fuse-ld=lld -static
 BENCH := $(shell find $(SRC_DIR) -mindepth 1 -maxdepth 1 -type d)
 BENCH_EXE := $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%.base, $(BENCH))
 BENCH_EXE += $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%.smx, $(BENCH))
+BENCH_EXE += $(patsubst $(SRC_DIR)/%, $(BUILD_DIR)/%.smx.nodae, $(BENCH))
 
 .PHONY: clean
 
@@ -81,6 +82,11 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.ll
 $(BUILD_DIR)/%.smx.ll: $(BUILD_DIR)/%.base.ll
 	mkdir -p $(dir $@)
 	$(CROSS_OPT) $(OPTFLAGS) $< -o $@
+
+.PRECIOUS: $(BUILD_DIR)/%.smx.nodae.ll
+$(BUILD_DIR)/%.smx.nodae.ll: $(BUILD_DIR)/%.base.ll
+	mkdir -p $(dir $@)
+	$(CROSS_OPT) $(OPTFLAGS) $< -o $@ --smx-config-only
 
 .PRECIOUS: $(BUILD_DIR)/%.base.ll
 $(BUILD_DIR)/%.base.ll: $(SRC_DIR)/%/main.c
