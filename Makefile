@@ -50,7 +50,7 @@ endif
 OPTFLAGS := -load-pass-plugin=$(SMX_TRANS) -S
 OPTFLAGS += -passes="instnamer,loop-simplify,loop-streamization"
 
-LLCFLAGS := -O3 -filetype=obj
+LLCFLAGS := -filetype=obj
 
 LDFLAGS := $(CFLAGS) -fuse-ld=lld -static
 
@@ -82,11 +82,13 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.ll
 $(BUILD_DIR)/%.smx.ll: $(BUILD_DIR)/%.base.ll
 	mkdir -p $(dir $@)
 	$(CROSS_OPT) $(OPTFLAGS) $< -o $@
+	$(CROSS_OPT) -S -O3 $@ -o $@
 
 .PRECIOUS: $(BUILD_DIR)/%.smx.nodae.ll
 $(BUILD_DIR)/%.smx.nodae.ll: $(BUILD_DIR)/%.base.ll
 	mkdir -p $(dir $@)
 	$(CROSS_OPT) $(OPTFLAGS) $< -o $@ --smx-config-only
+	$(CROSS_OPT) -S -O3 $@ -o $@
 
 .PRECIOUS: $(BUILD_DIR)/%.base.ll
 $(BUILD_DIR)/%.base.ll: $(SRC_DIR)/%/main.c
